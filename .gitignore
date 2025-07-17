@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Unit test output
+tests/data/output
+
+#IDE specific files
+.idea
