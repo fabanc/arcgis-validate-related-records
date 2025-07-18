@@ -10,7 +10,7 @@ if __name__ == '__main__':
 
 
 class TestRelationships(TestCase):
-    test_dir =  os.path.dirname(os.path.realpath(__file__))
+    test_dir = os.path.dirname(os.path.realpath(__file__))
     test_data_input = os.path.join(test_dir, "data", "input")
     test_data_output = os.path.join(test_dir, "data", "output")
     database_name = "RelationTestCasesSimple.gdb"
@@ -38,7 +38,7 @@ class TestRelationships(TestCase):
             import_type="DATA"
         )
 
-    def test_get_parent_table(self):
+    def test_get_parent_relation(self):
         """
         Test the get_parent_table function returns a result when a table is related to a parent table, and
         that is returns None when the table is not related to a parent table.
@@ -49,11 +49,51 @@ class TestRelationships(TestCase):
         unrelated_feature_class = os.path.join(self.database_path, "pois")
         unrelated_table = os.path.join(self.database_path, "version")
 
-        parent = relationships.get_parent_table(related_table)
+        parent = relationships.get_parent_relation(related_table)
         self.assertIsNotNone(parent)
 
-        parent = relationships.get_parent_table(unrelated_table)
+        parent = relationships.get_parent_relation(unrelated_table)
         self.assertIsNone(parent)
 
-        parent = relationships.get_parent_table(unrelated_feature_class)
+        parent = relationships.get_parent_relation(unrelated_feature_class)
         self.assertIsNone(parent)
+
+    def test_get_unique_field_value(self):
+        """
+        Test the get_unique_field_value function returns a set of unique values from a field in a table.
+        :return:
+        """
+
+        table = os.path.join(self.database_path, "accomodation_type")
+        field = 'PARENT_ID'
+        unique_values = relationships.get_unique_field_value(table, field)
+        self.assertEqual(3, len(unique_values))
+
+        table = os.path.join(self.database_path, "version")
+        field = 'OBJECTID'
+        unique_values = relationships.get_unique_field_value(table, field)
+        self.assertEqual(0, len(unique_values))
+
+        table = os.path.join(self.database_path, "pois")
+        field = 'OBJECTID'
+        unique_values = relationships.get_unique_field_value(table, field)
+        self.assertEqual(0, len(unique_values))
+
+    def test_find_orphaned_related_records(self):
+        table = os.path.join(self.database_path, "accomodation_type")
+        orphans = relationships.find_orphaned_related_records(table)
+        self.assertEqual(2, len(orphans))
+
+        # Check the function returns an error if the table is not related to a parent table
+        table = os.path.join(self.database_path, "version")
+        with self.assertRaises(Exception) as context:
+            relationships.find_orphaned_related_records(table)
+        ex = context.exception
+        self.assertEqual(str(ex), f"Relationship class not found for {table}")
+
+        # Check the function returns an error if the feature class is not related to a parent table
+        table = os.path.join(self.database_path, "pois")
+        with self.assertRaises(Exception) as context:
+            relationships.find_orphaned_related_records(table)
+        ex = context.exception
+        self.assertEqual(str(ex), f"Relationship class not found for {table}")

@@ -28,3 +28,13 @@ class FindOrphanedRelatedRecords(object):
 
         parameters = [in_related_table]
 
+    def isLicensed(self):
+        return True
+
+    def updateParameters(self, parameters):
+        if(parameters[1].value):
+            parameters[5].filter.list = [f.name for f in arcpy.Describe(parameters[1].value).fields]
+        return
+
+    def updateMessages(self, parameters):
+        return
