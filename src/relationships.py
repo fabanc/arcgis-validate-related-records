@@ -63,3 +63,24 @@ def find_orphaned_related_records(related_table):
     return orphaned_ids
 
 
+def orphaned_records_to_table(related_table, output_table):
+    """
+    Write orphaned records to a table.
+    :param related_table: The name of the related table.
+    :param output_table: The name of the output table to write orphaned records.
+    """
+    orphans = find_orphaned_related_records(related_table)
+
+    output_table_path = os.path.dirname(output_table)
+    output_table_name = os.path.basename(output_table)
+
+    arcpy.AddMessage(f"Writing orphaned records to table: {output_table_name} at {output_table_path}")
+    arcpy.management.CreateTable(output_table_path, output_table_name)
+    arcpy.management.AddField(output_table, "ORPHAN_ID", "TEXT")
+    arcpy.management.AddField(output_table, "RELATED_TABLE", "TEXT")
+
+    with arcpy.da.InsertCursor(output_table, ["ORPHAN_ID", "RELATED_TABLE"]) as cursor:
+        for orphan_id in orphans:
+            cursor.insertRow((orphan_id, os.path.basename(related_table)))
+
+    arcpy.AddMessage(f"Orphaned {len(orphan_id)} records written to {output_table}.")

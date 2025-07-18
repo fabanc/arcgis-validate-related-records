@@ -1,5 +1,5 @@
 import arcpy
-
+from src.relationships import orphaned_records_to_table
 
 class Toolbox(object):
     def __init__(self):
@@ -26,16 +26,28 @@ class FindOrphanedRelatedRecords(object):
             direction="Input"
         )
 
-        parameters = [in_related_table]
+        out_orphaned_table = arcpy.Parameter(
+            displayName="Orphaned Records Table",
+            name="out_orphaned_table",
+            datatype="GPTableView",
+            parameterType="Required",
+            direction="Output"
+        )
+        parameters = [in_related_table, out_orphaned_table]
+
         return parameters
 
     def isLicensed(self):
         return True
 
     def updateParameters(self, parameters):
-        if(parameters[1].value):
-            parameters[5].filter.list = [f.name for f in arcpy.Describe(parameters[1].value).fields]
         return
 
     def updateMessages(self, parameters):
         return
+
+    def execute(self, parameters, messages):
+        # Get the input table parameter
+        related_table = parameters[0].valueAsText
+        out_orphaned_table = parameters[1].valueAsText
+        orphaned_records_to_table(related_table, out_orphaned_table)
