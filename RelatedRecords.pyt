@@ -27,6 +27,7 @@ class FindOrphanedRelatedRecords(object):
         )
 
         parameters = [in_related_table]
+        return parameters
 
     def isLicensed(self):
         return True
